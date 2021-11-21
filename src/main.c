@@ -8,14 +8,14 @@
 // To run a particular example, you should remove the comment (//) in
 // front of exactly ONE of the following lines:
 
-#define BUTTON_BLINK
+//#define BUTTON_BLINK
 // #define LIGHT_SCHEDULER
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_CONTROL
 // #define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
-// #define COLOR_LED
+#define COLOR_LED
 // #define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
@@ -178,17 +178,17 @@ int main(void) // hello world
     // Remember that each of those three pins must go through a 220 ohm current-limiting resistor!
     // Also remember that the longest pin on the LED should be hooked up to GND.
 
-    InitializePin(GPIOA, GPIO_PIN_7, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // initialize color LED output pins
+    InitializePin(GPIOB, GPIO_PIN_7, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // initialize color LED output pins
     while (true) {
-        for (int color = 0; color < 8; ++color) {
+        //for (int color = 0; color < 8; ++color) {
             // bottom three bits indicate which of the three LEDs should be on (eight possible combinations)
             //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, color & 0x01);  // blue  (hex 1 == 0001 binary)
             //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, color & 0x02);  // green (hex 2 == 0010 binary)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, color & 0x04);  // red   (hex 4 == 0100 binary)
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, color & 0x04);  // red   (hex 4 == 0100 binary)
 
-            while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));   // wait for button press 
-            while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button release
-        }
+            //while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));   // wait for button press 
+            //while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button release
+        //}
     }
 #endif
 

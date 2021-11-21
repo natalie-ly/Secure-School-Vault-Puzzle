@@ -19,6 +19,7 @@
 // #define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
+//TESTING
 
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function

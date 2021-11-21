@@ -170,7 +170,7 @@ int main(void) // hello world
     }
 #endif
 
-#ifdef COLOR_LED
+#ifdef COLOR_LED // checking
     // Cycle through all 8 possible colors (including off and white) as the on-board button is pressed.
     // This example assumes that the color LED is connected to pins D11, D12 and D13.
 

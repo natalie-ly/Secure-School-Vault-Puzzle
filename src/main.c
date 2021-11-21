@@ -26,7 +26,7 @@
 
 #include "ece198.h"
 
-int main(void)
+int main(void) // hello world
 {
     HAL_Init(); // initialize the Hardware Abstraction Layer
 

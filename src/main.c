@@ -41,7 +41,6 @@ int main(void) // hello world
     // initialize the pins to be input, output, alternate function, etc...
 
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
-    InitializePin(GPIOB,GPIO_PIN_6, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
 
@@ -53,8 +52,14 @@ int main(void) // hello world
     // as mentioned above, only one of the following code sections will be used
     // (depending on which of the #define statements at the top of this file has been uncommented)
 
+//Function to turn LED on after 2.5 seconds, then turn it off
 #ifdef LED_ON
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, true);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
+
+    //delays LED turn on for 2.5s
+    HAL_Delay(2500);
+    
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
 #endif
 
 #ifdef BUTTON_BLINK

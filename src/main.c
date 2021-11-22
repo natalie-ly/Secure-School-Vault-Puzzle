@@ -21,6 +21,7 @@
 // #define PWM
 #define LED_ON
 
+
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function
 #include <stdlib.h>  // srand() and random() functions
@@ -41,6 +42,7 @@ int main(void) // hello world
     // initialize the pins to be input, output, alternate function, etc...
 
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
+    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
 
@@ -58,8 +60,11 @@ int main(void) // hello world
 
     //delays LED turn on for 2.5s
     HAL_Delay(2500);
-    
+
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
+
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, true);
+
 #endif
 
 #ifdef BUTTON_BLINK

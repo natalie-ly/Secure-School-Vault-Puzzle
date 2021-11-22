@@ -56,27 +56,6 @@ int main(void) // hello world
     // (depending on which of the #define statements at the top of this file has been uncommented)
 
     //Initialize the display, specifying what port and pins to use:
-    LiqiquidCrystal(GPIOB, GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_10, GPIO_PIN_3, GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6);
-
-    //display a message on the first row of the display
-    setCursor(0,0);
-    print("Hello, world!");
-
-    //display a count in the second row of the display 
-    int n=0; // counter
-    while(1)
-    {
-        //set the cursor to column 0, line 1
-        //(note: line 1 is the second row, since counting begins with 0):
-        setCursor(0,1);
-        //print an incrementing number
-        char buff[100];
-        sprintf(buff, "%d", n++);
-        print(buff);
-        HAL_Delay(80);
-    }
-    
-
 
 //Function to turn LED on after 2.5 seconds, then turn it off
 #ifdef LED_ON
@@ -98,6 +77,9 @@ int main(void) // hello world
             Display7Segment(i);
             HAL_Delay(1000);  // 1000 milliseconds == 1 second
         }
+
+    LiquidCrystal(GPIOB, GPIO_PIN_3, GPIO_PIN_0, GPIO_PIN_4, GPIO_PIN_10, GPIO_PIN_6, GPIO_PIN_9, GPIO_PIN_8);
+    print("Hello World");
 
 #endif
 

@@ -72,7 +72,7 @@ int main(void) // hello world
     }
 #endif
 
-#ifdef LIGHT_SCHEDULER
+#ifdef LIGHT_SCHEDULER // checking
     // Turn on the LED five seconds after reset, and turn it off again five seconds later.
 
     while (true) {

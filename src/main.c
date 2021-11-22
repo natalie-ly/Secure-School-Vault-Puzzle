@@ -63,7 +63,17 @@ int main(void) // hello world
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
 
+    //Solenoid Lock
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, true);
+
+    //7 Segment Display
+    Initialize7Segment();
+    while (true)
+        for (int i = 0; i < 10; ++i)
+        {
+            Display7Segment(i);
+            HAL_Delay(1000);  // 1000 milliseconds == 1 second
+        }
 
 #endif
 

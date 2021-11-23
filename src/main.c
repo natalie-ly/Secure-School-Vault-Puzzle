@@ -13,14 +13,14 @@
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_CONTROL
-//#define SEVEN_SEGMENT
+#define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
 // #define COLOR_LED
 // #define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
 // #define LED_ON
-#define SEVEN
+
 
 //#include "LiquidCrystal.h"
 #include <stdbool.h> // booleans, i.e. true and false
@@ -207,39 +207,6 @@ int main(void) // hello world
         Display7Segment(count);
     }
 
-#endif
-
-#ifdef SEVEN
-    struct { GPIO_TypeDef *port; uint32_t pin; }
-    segments[] = {
-        { GPIOA, GPIO_PIN_0 },  // A
-        { GPIOA, GPIO_PIN_1 },  // B
-        { GPIOA, GPIO_PIN_4 },  // C
-        { GPIOB, GPIO_PIN_0 },  // D
-        { GPIOC, GPIO_PIN_1 },  // E
-        { GPIOC, GPIO_PIN_0 },  // F
-        { GPIOB, GPIO_PIN_8 },  // G
-        { GPIOB, GPIO_PIN_9 },  // H (also called DP)
-    };
-
-    // for each digit, we have a byte (uint8_t) which stores which segments are on and off
-    // (bits are ABCDEFGH, right to left, so the low-order bit is segment A)
-    uint8_t digitmap[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
-
-    void Initialize7Segment() {
-        for (int i = 0; i < 8; ++i)
-            InitializePin(segments[i].port, segments[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
-    }
-
-    void Display7Segment(int digit) {
-        int value = 0;  // by default, don't turn on any segments
-        if (digit >= 0 && digit <= 9)  // see if it's a valid digit
-            value = digitmap[digit];   // convert digit to a byte which specifies which segments are on
-        //value = ~value;   // uncomment this line for common-anode displays
-        // go through the segments, turning them on or off depending on the corresponding bit
-        for (int i = 0; i < 8; ++i)
-            HAL_GPIO_WritePin(segments[i].port, segments[i].pin, (value >> i) & 0x01);  // move bit into bottom position and isolate it
-    }
 #endif
 
 #ifdef KEYPAD_SEVEN_SEGMENT

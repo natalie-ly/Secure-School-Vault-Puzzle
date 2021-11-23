@@ -13,16 +13,16 @@
 // #define TIME_RAND
 // #define KEYPAD
 // #define KEYPAD_CONTROL
-// #define SEVEN_SEGMENT
+//#define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
-//#define COLOR_LED
+// #define COLOR_LED
 // #define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
-#define LED_ON
+// #define LED_ON
+#define SEVEN
 
-
-#include "LiquidCrystal.h"
+//#include "LiquidCrystal.h"
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function
 #include <stdlib.h>  // srand() and random() functions
@@ -43,7 +43,7 @@ int main(void) // hello world
     // initialize the pins to be input, output, alternate function, etc...
 
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
-    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOA, GPIO_PIN_10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
 
@@ -57,29 +57,32 @@ int main(void) // hello world
 
     //Initialize the display, specifying what port and pins to use:
 
+
 //Function to turn LED on after 2.5 seconds, then turn it off
 #ifdef LED_ON
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);
+
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
 
     //delays LED turn on for 2.5s
     HAL_Delay(2500);
 
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
 
     //Solenoid Lock
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, true);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
 
     //7 Segment Display
-    Initialize7Segment();
-    while (true)
-        for (int i = 0; i < 10; ++i)
-        {
-            Display7Segment(i);
-            HAL_Delay(1000);  // 1000 milliseconds == 1 second
-        }
 
-    LiquidCrystal(GPIOB, GPIO_PIN_3, GPIO_PIN_0, GPIO_PIN_4, GPIO_PIN_10, GPIO_PIN_6, GPIO_PIN_9, GPIO_PIN_8);
-    print("Hello World");
+    // Initialize7Segment();
+    // while (true)
+    //     for (int i = 0; i < 10; ++i)
+    //     {
+    //         Display7Segment(i);
+    //         HAL_Delay(1000);  // 1000 milliseconds == 1 second
+    //     }
+
+    //LiquidCrystal(GPIOB, GPIO_PIN_3, GPIO_PIN_0, GPIO_PIN_4, GPIO_PIN_10, GPIO_PIN_6, GPIO_PIN_9, GPIO_PIN_8);
+    //print("Hello World");
 
 #endif
 
@@ -175,12 +178,68 @@ int main(void) // hello world
     // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
     
     Initialize7Segment();
+    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_10, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count = 0;             // this gets incremented or decremented as we rotate the encoder
+
     while (true)
-        for (int i = 0; i < 10; ++i)
-        {
-            Display7Segment(i);
-            HAL_Delay(1000);  // 1000 milliseconds == 1 second
+    {
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, &previousClk);  // update the count by -1, 0 or +1
+        if (delta != 0) {
+            count += delta;
+            if(count == 10)
+            {
+                count = 0;
+            }
+            else if(count == -1)
+            {
+                count = 9;
+            }
+            char buff[100];
+            sprintf(buff, "%d  \r", count);
+            SerialPuts(buff);
         }
+        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10);  // read the push-switch on the encoder (active low, so we invert it using !)
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);  // turn on LED when encoder switch is pushed in
+        Display7Segment(count);
+    }
+
+#endif
+
+#ifdef SEVEN
+    struct { GPIO_TypeDef *port; uint32_t pin; }
+    segments[] = {
+        { GPIOA, GPIO_PIN_0 },  // A
+        { GPIOA, GPIO_PIN_1 },  // B
+        { GPIOA, GPIO_PIN_4 },  // C
+        { GPIOB, GPIO_PIN_0 },  // D
+        { GPIOC, GPIO_PIN_1 },  // E
+        { GPIOC, GPIO_PIN_0 },  // F
+        { GPIOB, GPIO_PIN_8 },  // G
+        { GPIOB, GPIO_PIN_9 },  // H (also called DP)
+    };
+
+    // for each digit, we have a byte (uint8_t) which stores which segments are on and off
+    // (bits are ABCDEFGH, right to left, so the low-order bit is segment A)
+    uint8_t digitmap[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
+
+    void Initialize7Segment() {
+        for (int i = 0; i < 8; ++i)
+            InitializePin(segments[i].port, segments[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    }
+
+    void Display7Segment(int digit) {
+        int value = 0;  // by default, don't turn on any segments
+        if (digit >= 0 && digit <= 9)  // see if it's a valid digit
+            value = digitmap[digit];   // convert digit to a byte which specifies which segments are on
+        //value = ~value;   // uncomment this line for common-anode displays
+        // go through the segments, turning them on or off depending on the corresponding bit
+        for (int i = 0; i < 8; ++i)
+            HAL_GPIO_WritePin(segments[i].port, segments[i].pin, (value >> i) & 0x01);  // move bit into bottom position and isolate it
+    }
 #endif
 
 #ifdef KEYPAD_SEVEN_SEGMENT

@@ -235,6 +235,7 @@ int ReadKeypad() {
 // 7-Segment Display //
 ///////////////////////
 
+//First 7 segment display
 struct { GPIO_TypeDef *port; uint32_t pin; }
 segments[] = {
     { GPIOA, GPIO_PIN_0 },  // A
@@ -247,10 +248,25 @@ segments[] = {
     { GPIOB, GPIO_PIN_9 },  // H (also called DP)
 };
 
+//Second 7 segment display
+struct { GPIO_TypeDef *port; uint32_t pin; }
+segments1[] = {
+    { GPIOA, GPIO_PIN_6 },  // A
+    { GPIOA, GPIO_PIN_7 },  // B
+    { GPIOA, GPIO_PIN_9 },  // C
+    { GPIOC, GPIO_PIN_7 },  // D
+    { GPIOB, GPIO_PIN_6 },  // E
+    { GPIOA, GPIO_PIN_5 },  // F
+    { GPIOB, GPIO_PIN_10 },  // G
+    { GPIOA, GPIO_PIN_8 },  // H (also called DP)
+};
+
 // for each digit, we have a byte (uint8_t) which stores which segments are on and off
 // (bits are ABCDEFGH, right to left, so the low-order bit is segment A)
 uint8_t digitmap[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
+uint8_t digitmap1[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
 
+//First 7 segment initialize and display
 void Initialize7Segment() {
     for (int i = 0; i < 8; ++i)
         InitializePin(segments[i].port, segments[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
@@ -264,6 +280,22 @@ void Display7Segment(int digit) {
     // go through the segments, turning them on or off depending on the corresponding bit
     for (int i = 0; i < 8; ++i)
         HAL_GPIO_WritePin(segments[i].port, segments[i].pin, (value >> i) & 0x01);  // move bit into bottom position and isolate it
+}
+
+//Second 7 segment initialize and display
+void Initialize7Segment1() {
+    for (int i = 0; i < 8; ++i)
+        InitializePin(segments1[i].port, segments1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+}
+
+void Display7Segment1(int digit) {
+    int value1 = 0;  // by default, don't turn on any segments
+    if (digit >= 0 && digit <= 9)  // see if it's a valid digit
+        value1 = digitmap1[digit];   // convert digit to a byte which specifies which segments are on
+    //value = ~value;   // uncomment this line for common-anode displays
+    // go through the segments, turning them on or off depending on the corresponding bit
+    for (int i = 0; i < 8; ++i)
+        HAL_GPIO_WritePin(segments1[i].port, segments1[i].pin, (value1 >> i) & 0x01);  // move bit into bottom position and isolate it
 }
 
 /////////

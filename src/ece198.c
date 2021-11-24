@@ -24,6 +24,15 @@ void InitializePin(GPIO_TypeDef *port, uint16_t pins, uint32_t mode, uint32_t pu
     HAL_GPIO_Init(port, &GPIO_InitStruct);
 }
 
+void InitializePin1(GPIO_TypeDef *port, uint16_t pins, uint32_t mode, uint32_t pullups, uint8_t alternate)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = pins;
+    GPIO_InitStruct.Mode = mode;
+    GPIO_InitStruct.Pull = pullups;
+    GPIO_InitStruct.Alternate = alternate;
+    HAL_GPIO_Init(port, &GPIO_InitStruct);
+}
 /////////////////
 // Serial Port //
 /////////////////
@@ -285,7 +294,7 @@ void Display7Segment(int digit) {
 //Second 7 segment initialize and display
 void Initialize7Segment1() {
     for (int i = 0; i < 8; ++i)
-        InitializePin(segments1[i].port, segments1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+        InitializePin1(segments1[i].port, segments1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
 }
 
 void Display7Segment1(int digit) {

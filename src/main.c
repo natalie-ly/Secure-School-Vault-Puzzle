@@ -16,19 +16,20 @@
 //#define SEVEN_SEGMENT
 // #define KEYPAD_SEVEN_SEGMENT
 // #define COLOR_LED
-#define ROTARY_ENCODER
+//#define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
-// #define LED_ON
+#define LED_ON
 //#define SEVEN
 
 
-//#include "LiquidCrystal.h"
+
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function
 #include <stdlib.h>  // srand() and random() functions
 
 #include "ece198.h"
+#include "LiquidCrystal.h"
 
 int main(void) // hello world
 {
@@ -42,7 +43,6 @@ int main(void) // hello world
     __HAL_RCC_GPIOC_CLK_ENABLE(); // enable port C (for the on-board blue pushbutton, for example)
 
     // initialize the pins to be input, output, alternate function, etc...
-
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
     InitializePin(GPIOA, GPIO_PIN_10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
@@ -82,25 +82,31 @@ int main(void) // hello world
     //         HAL_Delay(1000);  // 1000 milliseconds == 1 second
     //     }
 
-    //LiquidCrystal(GPIOB, GPIO_PIN_3, GPIO_PIN_0, GPIO_PIN_4, GPIO_PIN_10, GPIO_PIN_6, GPIO_PIN_9, GPIO_PIN_8);
-    //print("Hello World");
+    LiquidCrystal(GPIOC, GPIO_PIN_10, GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15, GPIO_PIN_2, GPIO_PIN_3);
+    setCursor(0, 0);
+    print("Hello World");
 
 #endif
 
-//Demonstration purposes
+//Checking if each part works
 #ifdef SEVEN
     Initialize7Segment();
+    Initialize7Segment1();
+
     while (true)
         for(int i = 0; i < 10; ++i)
         {
             Display7Segment(i);
-            HAL_Delay(1000);
+            HAL_Delay(250);
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
 
             //delays LED turn on for 2.5s
             HAL_Delay(2500);
 
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
+
+            Display7Segment1(i);
+            HAL_Delay(1000);
         }
 #endif
 
@@ -271,21 +277,24 @@ int main(void) // hello world
 
     InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
     InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOA, GPIO_PIN_2, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
     
     bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
     int count = 0;             // this gets incremented or decremented as we rotate the encoder
 
+
+
+    //%d - means printing integer (the integer is count)
     while (true)
-    {
+    {   
         int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         if (delta != 0) {
-            count += delta;
+            count -= delta;
             char buff[100];
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
         }
-        bool sw = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);  // read the push-switch on the encoder (active low, so we invert it using !)
+        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4);  // read the push-switch on the encoder (active low, so we invert it using !)
     }
 #endif
 

@@ -11,14 +11,9 @@
 //#define BUTTON_BLINK
 // #define LIGHT_SCHEDULER
 // #define TIME_RAND
-// #define KEYPAD
-// #define KEYPAD_CONTROL
-//#define SEVEN_SEGMENT
-#define KEYPAD_SEVEN_SEGMENT
+#define SEVEN_SEGMENT
 // #define COLOR_LED
-#define ROTARY_ENCODER
-// #define ANALOG
-// #define PWM
+//#define ROTARY_ENCODER
 //#define LED_ON
 //#define SEVEN
 
@@ -174,17 +169,17 @@ int main(void) // hello world
     
     Initialize7Segment();
     InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOB, GPIO_PIN_10, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
     
     bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
     int count = 0;             // this gets incremented or decremented as we rotate the encoder
 
     while (true)
     {
-        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_4, &previousClk);  // update the count by -1, 0 or +1
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         if (delta != 0) {
-            count += delta;
+            count -= delta;
             if(count == 10)
             {
                 count = 0;
@@ -196,6 +191,14 @@ int main(void) // hello world
             char buff[100];
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
+            if(count == 2)
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
+            }
         }
         bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10);  // read the push-switch on the encoder (active low, so we invert it using !)
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);  // turn on LED when encoder switch is pushed in

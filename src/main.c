@@ -14,12 +14,12 @@
 // #define KEYPAD
 // #define KEYPAD_CONTROL
 //#define SEVEN_SEGMENT
-// #define KEYPAD_SEVEN_SEGMENT
+#define KEYPAD_SEVEN_SEGMENT
 // #define COLOR_LED
-//#define ROTARY_ENCODER
+#define ROTARY_ENCODER
 // #define ANALOG
 // #define PWM
-#define LED_ON
+//#define LED_ON
 //#define SEVEN
 
 
@@ -105,7 +105,7 @@ int main(void) // hello world
 
             HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
 
-            Display7Segment1(i);
+            Display7Segment1(count);
             HAL_Delay(1000);
         }
 #endif
@@ -122,18 +122,6 @@ int main(void) // hello world
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(250);  // 250 milliseconds == 1/4 second
-    }
-#endif
-
-#ifdef LIGHT_SCHEDULER
-    // Turn on the LED five seconds after reset, and turn it off again five seconds later.
-
-    while (true) {
-        uint32_t now = HAL_GetTick();
-        if (now > 5000 && now < 10000)
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, true);   // turn on LED
-        else
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, false);  // turn off LED
     }
 #endif
 
@@ -163,23 +151,6 @@ int main(void) // hello world
         SerialPuts(buff); // transmit the buffer to the host computer's serial monitor in VSCode/PlatformIO
 
         while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button to be released
-    }
-#endif
-
-#ifdef KEYPAD
-    // Read buttons on the keypad and display them on the console.
-
-    // this string contains the symbols on the external keypad
-    // (they may be different for different keypads)
-    char *keypad_symbols = "123A456B789C*0#D";
-    // note that they're numbered from left to right and top to bottom, like reading words on a page
-
-    InitializeKeypad();
-    while (true)
-    {
-        while (ReadKeypad() < 0);   // wait for a valid key
-        SerialPutc(keypad_symbols[ReadKeypad()]);  // look up its ASCII symbol and send it to the hsot
-        while (ReadKeypad() >= 0);  // wait until key is released
     }
 #endif
 
@@ -233,45 +204,6 @@ int main(void) // hello world
 
 #endif
 
-#ifdef KEYPAD_SEVEN_SEGMENT
-    // Combines the previous two examples, displaying numbers from the keypad on the 7-segment display.
-
-    // this string contains the symbols on the external keypad
-    // (they may be different for different keypads)
-    char *keypad_symbols = "123A456B789C*0#D";
-    // note that they're numbered from left to right and top to bottom, like reading words on a page
-
-    InitializeKeypad();
-    Initialize7Segment();
-    while (true)
-    {
-        int key = ReadKeypad();
-        if (key >= 0)
-            Display7Segment(keypad_symbols[key]-'0');  // tricky code to convert ASCII digit to a number
-    }
-#endif
-
-#ifdef COLOR_LED
-    // Cycle through all 8 possible colors (including off and white) as the on-board button is pressed.
-    // This example assumes that the color LED is connected to pins D11, D12 and D13.
-
-    // Remember that each of those three pins must go through a 220 ohm current-limiting resistor!
-    // Also remember that the longest pin on the LED should be hooked up to GND.
-
-    //InitializePin(GPIOB, GPIO_PIN_6, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // initialize color LED output pins
-    //while (true) {
-        //for (int color = 0; color < 8; ++color) {
-            // bottom three bits indicate which of the three LEDs should be on (eight possible combinations)
-            //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, color & 0x01);  // blue  (hex 1 == 0001 binary)
-            //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, color & 0x02);  // green (hex 2 == 0010 binary)
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, 0100);  // red   (hex 4 == 0100 binary)
-
-            //while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));   // wait for button press 
-            //while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button release
-        //}
-    }
-#endif
-
 #ifdef ROTARY_ENCODER
     // Read values from the rotary encoder and update a count, which is displayed in the console.
 
@@ -298,55 +230,6 @@ int main(void) // hello world
     }
 #endif
 
-#ifdef ANALOG
-    // Use the ADC (Analog to Digital Converter) to read voltage values from two pins.
-
-    __HAL_RCC_ADC1_CLK_ENABLE();        // enable ADC 1
-    ADC_HandleTypeDef adcInstance;      // this variable stores an instance of the ADC
-    InitializeADC(&adcInstance, ADC1);  // initialize the ADC instance
-    // Enables the input pins
-    // (on this board, pin A0 is connected to channel 0 of ADC1, and A1 is connected to channel 1 of ADC1)
-    InitializePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1, GPIO_MODE_ANALOG, GPIO_NOPULL, 0);   
-    while (true)
-    {
-        // read the ADC values (0 -> 0V, 2^12 -> 3.3V)
-        uint16_t raw0 = ReadADC(&adcInstance, ADC_CHANNEL_0);
-        uint16_t raw1 = ReadADC(&adcInstance, ADC_CHANNEL_1);
-
-        // print the ADC values
-        char buff[100];
-        sprintf(buff, "Channel0: %hu, Channel1: %hu\r\n", raw0, raw1);  // hu == "unsigned short" (16 bit)
-        SerialPuts(buff);
-    }
-#endif
-
-#ifdef PWM
-    // Use Pulse Width Modulation to fade the LED in and out.
-    uint16_t period = 100, prescale = 16;
-
-    __TIM2_CLK_ENABLE();  // enable timer 2
-    TIM_HandleTypeDef pwmTimerInstance;  // this variable stores an instance of the timer
-    InitializePWMTimer(&pwmTimerInstance, TIM2, period, prescale);   // initialize the timer instance
-    InitializePWMChannel(&pwmTimerInstance, TIM_CHANNEL_1);          // initialize one channel (can use others for motors, etc)
-
-    InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_AF1_TIM2); // connect the LED to the timer output
-
-    while (true)
-    {
-        // fade the LED in by slowly increasing the duty cycle
-        for (uint32_t i = 0; i < period; ++i)
-        {
-            SetPWMDutyCycle(&pwmTimerInstance, TIM_CHANNEL_1, i);
-            HAL_Delay(5);
-        }
-        // fade the LED out by slowly decreasing the duty cycle
-        for (uint32_t i = period; i > 0; --i)
-        {
-            SetPWMDutyCycle(&pwmTimerInstance, TIM_CHANNEL_1, i);
-            HAL_Delay(5);
-        }
-    }
-#endif
     return 0;
 }
 

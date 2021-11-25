@@ -20,6 +20,7 @@ void SerialPuts(char *ptr);
 #define ReadPort(port) (port->IDR)
 
 int ReadEncoder(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previous);
+int ReadEncoder1(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previous);
 
 void InitializePWMTimer(TIM_HandleTypeDef *timer, TIM_TypeDef *whichTimer, uint16_t period, uint16_t prescale);
 void InitializePWMChannel(TIM_HandleTypeDef *timer, uint32_t channel);
@@ -30,6 +31,8 @@ int ReadKeypad();
 
 void Initialize7Segment();
 void Display7Segment(int digit);
+void Initialize7Segment1();
+void Display7Segment1(int digit1);
 
 void InitializeADC(ADC_HandleTypeDef* adc, ADC_TypeDef* whichAdc);
 uint16_t ReadADC(ADC_HandleTypeDef* adc, uint32_t channel);

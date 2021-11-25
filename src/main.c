@@ -8,18 +8,11 @@
 // To run a particular example, you should remove the comment (//) in
 // front of exactly ONE of the following lines:
 
-//#define BUTTON_BLINK
-// #define LIGHT_SCHEDULER
-// #define TIME_RAND
-//#define ROTARY_ENCODER1
-// #define COLOR_LED
+#define GAME
 //#define TESTING_ROTARY_ENCODER1
-#define TESTING_ROTARY_ENCODER2
+//#define TESTING_ROTARY_ENCODER2
 //#define ROTARY_ENCODER2
-//#define LED_ON
-//#define SEVEN
-//void game();
-
+//#define TESTING_LED
 
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function
@@ -28,82 +21,10 @@
 #include "ece198.h"
 #include "LiquidCrystal.h"
 
-void game() {
-
-    
-    Initialize7Segment();
-    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    Initialize7Segment1();
-    InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOA, GPIO_PIN_2, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOA, GPIO_PIN_8, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    
-    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count = 0;             // this gets incremented or decremented as we rotate the encoder
-    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count1 = 0;             // this gets incremented or decremented as we rotate the encoder
-
-
-    while (true)
-    {
-        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
-        int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk1);  // update the count by -1, 0 or +1
-        int check = 0 ; 
-        if (delta != 0) {
-            count -= delta;
-            if(count == 10)
-            {
-                count = 0;
-            }
-            else if(count == -1)
-            {
-                count = 9;
-            }
-            char buff[100];
-            sprintf(buff, "%d  \r", count);
-            SerialPuts(buff);
-            if(count == 2)
-            {
-                check = 1;
-            }
-            else
-            {
-                check = 0;
-            }
-        }
-        if (delta1 != 0) {
-            count1 -= delta1;
-            if(count1 == 10)
-            {
-                count1 = 0;
-            }
-            else if(count1 == -1)
-            {
-                count1 = 9;
-            }
-            char buff[100];
-            sprintf(buff, "%d  \r", count1);
-            SerialPuts(buff);
-            if(count1 == 4 && check == 1)
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
-            }
-            else
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
-            }
-        }
-        Display7Segment1(count1);
-        Display7Segment(count);
-    }
-}
-
 int main(void) // hello world
 {
 
-    //rotary_encoder(); 
+    //void game(); 
 
     HAL_Init(); // initialize the Hardware Abstraction Layer
 
@@ -131,9 +52,83 @@ int main(void) // hello world
 
     //Initialize the display, specifying what port and pins to use:
 
+#ifdef GAME
+    // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
+    // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
+    Initialize7Segment1();
+    InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count1 = 0;             
 
-//Function to turn LED on after 2.5 seconds, then turn it off
-#ifdef LED_ON
+    Initialize7Segment();
+    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count = 0;             // this gets incremented or decremented as we rotate the encoder
+
+    while (true)
+    {
+        // int check = 0;
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
+        int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
+
+        if (delta != 0 || delta1 != 0) {
+            count -= delta;
+            if(count == 10)
+            {
+                count = 0;
+            }
+            else if(count == -1)
+            {
+                count = 9;
+            }
+            char buff[100];
+            sprintf(buff, "%d  \r", count);
+            SerialPuts(buff);
+            // if(count == 2)
+            // {
+            //     check = 1;
+            // }
+            // else
+            // {
+            //     check = 0;
+            // }
+            count1 -= delta1;
+            if(count1 == 10)
+            {
+                count1 = 0;
+            }
+            else if(count1 == -1)
+            {
+                count1 = 9;
+            }
+            char buff1[100];
+            sprintf(buff1, "%d  \r", count1);
+            SerialPuts(buff1);
+            if(count1 == 7 && count == 4)
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
+            }
+
+            Display7Segment(count);
+            Display7Segment1(count1);
+        }
+
+    }
+
+#endif
+
+/* Function to turn LED on after 2.5 seconds, then turn it off
+#ifdef TESTING_LED
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
 
@@ -158,116 +153,6 @@ int main(void) // hello world
     LiquidCrystal(GPIOC, GPIO_PIN_10, GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15, GPIO_PIN_2, GPIO_PIN_3);
     setCursor(0, 0);
     print("Hello World");
-
-#endif
-
-//Checking if each part works
-#ifdef SEVEN
-    Initialize7Segment();
-    Initialize7Segment1();
-
-    int count = 0;
-
-    while (true)
-        for(int i = 0; i < 10; ++i)
-        {
-            Display7Segment(i);
-            HAL_Delay(250);
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
-
-            //delays LED turn on for 2.5s
-            HAL_Delay(2500);
-
-            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
-
-            Display7Segment1(i);
-            HAL_Delay(1000);
-        }
-#endif
-
-#ifdef BUTTON_BLINK
-    // Wait for the user to push the blue button, then blink the LED.
-
-    // wait for button press (active low)
-    while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13))
-    {
-    }
-
-    while (1) // loop forever, blinking the LED
-    {
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(250);  // 250 milliseconds == 1/4 second
-    }
-#endif
-
-#ifdef TIME_RAND
-    // This illustrates the use of HAL_GetTick() to get the current time,
-    // plus the use of random() for random number generation.
-    
-    // Note that you must have "#include <stdlib.h>"" at the top of your main.c
-    // in order to use the srand() and random() functions.
-
-    // while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button press
-    // srand(HAL_GetTick());  // set the random seed to be the time in ms that it took to press the button
-    // if the line above is commented out, your program will get the same sequence of random numbers
-    // every time you run it (which may be useful in some cases)
-
-    while (true) // loop forever
-    {
-        while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button press
-
-        // Display the time in milliseconds along with a random number.
-        // We use the sprintf() function to put the formatted output into a buffer;
-        // see https://www.tutorialspoint.com/c_standard_library/c_function_sprintf.htm for more
-        // information about this function
-        char buff[100];
-        sprintf(buff, "Time: %lu ms   Random = %ld\r\n", HAL_GetTick(), random());
-        // lu == "long unsigned", ld = "long decimal", where "long" is 32 bit and "decimal" implies signed
-        SerialPuts(buff); // transmit the buffer to the host computer's serial monitor in VSCode/PlatformIO
-
-        while (!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));  // wait for button to be released
-    }
-#endif
-
-#ifdef ROTARY_ENCODER1
-    // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
-    // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
-    
-    Initialize7Segment();
-    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    
-    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count = 0;             // this gets incremented or decremented as we rotate the encoder
-
-    while (true)
-    {
-        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
-        if (delta != 0) {
-            count -= delta;
-            if(count == 10)
-            {
-                count = 0;
-            }
-            else if(count == -1)
-            {
-                count = 9;
-            }
-            char buff[100];
-            sprintf(buff, "%d  \r", count);
-            SerialPuts(buff);
-            if(count == 2)
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
-            }
-            else
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
-            }
-        }
-        Display7Segment(count);
-    }
 
 #endif
 
@@ -361,7 +246,7 @@ int main(void) // hello world
         }
     }
 #endif
-
+*/
     return 0;
 }
 

@@ -77,7 +77,7 @@ int main(void) // hello world
         int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
 
-        if (delta != 0 || delta1 != 0) {
+        if(delta != 0 || delta1 != 0) {
             count -= delta;
             if(count == 10)
             {
@@ -90,14 +90,7 @@ int main(void) // hello world
             char buff[100];
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
-            // if(count == 2)
-            // {
-            //     check = 1;
-            // }
-            // else
-            // {
-            //     check = 0;
-            // }
+            
             count1 -= delta1;
             if(count1 == 10)
             {

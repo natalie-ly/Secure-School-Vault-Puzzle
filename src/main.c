@@ -13,11 +13,12 @@
 // #define TIME_RAND
 //#define ROTARY_ENCODER1
 // #define COLOR_LED
-//#define TESTING_ROTARY_ENCODER
-#define ROTARY_ENCODER2
+//#define TESTING_ROTARY_ENCODER1
+#define TESTING_ROTARY_ENCODER2
+//#define ROTARY_ENCODER2
 //#define LED_ON
 //#define SEVEN
-
+//void game();
 
 
 #include <stdbool.h> // booleans, i.e. true and false
@@ -27,9 +28,85 @@
 #include "ece198.h"
 #include "LiquidCrystal.h"
 
+void game() {
+
+    
+    Initialize7Segment();
+    InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_4, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    Initialize7Segment1();
+    InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOA, GPIO_PIN_2, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOA, GPIO_PIN_8, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count = 0;             // this gets incremented or decremented as we rotate the encoder
+    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count1 = 0;             // this gets incremented or decremented as we rotate the encoder
+
+
+    while (true)
+    {
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
+        int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk1);  // update the count by -1, 0 or +1
+        int check = 0 ; 
+        if (delta != 0) {
+            count -= delta;
+            if(count == 10)
+            {
+                count = 0;
+            }
+            else if(count == -1)
+            {
+                count = 9;
+            }
+            char buff[100];
+            sprintf(buff, "%d  \r", count);
+            SerialPuts(buff);
+            if(count == 2)
+            {
+                check = 1;
+            }
+            else
+            {
+                check = 0;
+            }
+        }
+        if (delta1 != 0) {
+            count1 -= delta1;
+            if(count1 == 10)
+            {
+                count1 = 0;
+            }
+            else if(count1 == -1)
+            {
+                count1 = 9;
+            }
+            char buff[100];
+            sprintf(buff, "%d  \r", count1);
+            SerialPuts(buff);
+            if(count1 == 4 && check == 1)
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
+            }
+        }
+        Display7Segment1(count1);
+        Display7Segment(count);
+    }
+}
+
 int main(void) // hello world
 {
+
+    //rotary_encoder(); 
+
     HAL_Init(); // initialize the Hardware Abstraction Layer
+
 
     // Peripherals (including GPIOs) are disabled by default to save power, so we
     // use the Reset and Clock Control registers to enable the GPIO peripherals that we're using.
@@ -189,14 +266,54 @@ int main(void) // hello world
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
             }
         }
-        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10);  // read the push-switch on the encoder (active low, so we invert it using !)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);  // turn on LED when encoder switch is pushed in
         Display7Segment(count);
     }
 
 #endif
 
-#ifdef TESTING_ROTARY_ENCODER
+#ifdef ROTARY_ENCODER2
+    // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
+    // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
+    
+    Initialize7Segment1();
+    InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count1 = 0;             // this gets incremented or decremented as we rotate the encoder
+
+    while (true)
+    {
+        int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
+        if (delta1 != 0) {
+            count1 -= delta1;
+            if(count1 == 10)
+            {
+                count1 = 0;
+            }
+            else if(count1 == -1)
+            {
+                count1 = 9;
+            }
+            char buff[100];
+            sprintf(buff, "%d  \r", count1);
+            SerialPuts(buff);
+            if(count1 == 4)
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+            }
+            else
+            {
+                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
+            }
+        }
+        Display7Segment1(count1);
+    }
+
+#endif
+
+#ifdef TESTING_ROTARY_ENCODER1
     // Read values from the rotary encoder and update a count, which is displayed in the console.
 
     InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
@@ -222,48 +339,27 @@ int main(void) // hello world
     }
 #endif
 
-#ifdef ROTARY_ENCODER2
-    // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
-    // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
-    
-    Initialize7Segment1();
-    InitializePin(GPIOB, GPIO_PIN_9, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOA, GPIO_PIN_2, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOA, GPIO_PIN_8, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    
-    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count1 = 0;             // this gets incremented or decremented as we rotate the encoder
+#ifdef TESTING_ROTARY_ENCODER2
+    // Read values from the rotary encoder and update a count, which is displayed in the console.
 
+    InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count = 0;             // this gets incremented or decremented as we rotate the encoder
+
+    //%d - means printing integer (the integer is count)
     while (true)
-    {
-        int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk1);  // update the count by -1, 0 or +1
-        if (delta1 != 0) {
-            count1 -= delta1;
-            if(count1 == 10)
-            {
-                count1 = 0;
-            }
-            else if(count1 == -1)
-            {
-                count1 = 9;
-            }
+    {   
+        int delta = ReadEncoder(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk);  // update the count by -1, 0 or +1
+        if (delta != 0) {
+            count -= delta;
             char buff[100];
-            sprintf(buff, "%d  \r", count1);
+            sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
-            if(count1 == 4)
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
-            }
-            else
-            {
-                HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
-            }
         }
-        bool sw = !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10);  // read the push-switch on the encoder (active low, so we invert it using !)
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, sw);  // turn on LED when encoder switch is pushed in
-        Display7Segment1(count1);
     }
-
 #endif
 
     return 0;

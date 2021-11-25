@@ -144,7 +144,24 @@ int ReadEncoder(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtp
     bool dt = HAL_GPIO_ReadPin(dtport, dtpin);
     int result = 0;  // default to zero if encoder hasn't moved
     if (clk != *previousClk)           // if the clk signal has changed since last time we were called...
+    {
         result = dt != clk ? 1 : -1;   // set the result to the direction (-1 if clk == dt, 1 if they differ)
+    }
+
+    *previousClk = clk;                // store for next time
+    return result;
+}
+
+int ReadEncoder1(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previousClk)
+{
+    bool clk = HAL_GPIO_ReadPin(clkport, clkpin);
+    bool dt = HAL_GPIO_ReadPin(dtport, dtpin);
+    int result = 0;  // default to zero if encoder hasn't moved
+    if (clk != *previousClk)           // if the clk signal has changed since last time we were called...
+    {
+        result = dt != clk ? 1 : -1;   // set the result to the direction (-1 if clk == dt, 1 if they differ)
+    }
+
     *previousClk = clk;                // store for next time
     return result;
 }
@@ -294,13 +311,13 @@ void Display7Segment(int digit) {
 //Second 7 segment initialize and display
 void Initialize7Segment1() {
     for (int i = 0; i < 8; ++i)
-        InitializePin1(segments1[i].port, segments1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+        InitializePin(segments1[i].port, segments1[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
 }
 
-void Display7Segment1(int digit) {
+void Display7Segment1(int digit1) {
     int value1 = 0;  // by default, don't turn on any segments
-    if (digit >= 0 && digit <= 9)  // see if it's a valid digit
-        value1 = digitmap1[digit];   // convert digit to a byte which specifies which segments are on
+    if (digit1 >= 0 && digit1 <= 9)  // see if it's a valid digit
+        value1 = digitmap1[digit1];   // convert digit to a byte which specifies which segments are on
     //value = ~value;   // uncomment this line for common-anode displays
     // go through the segments, turning them on or off depending on the corresponding bit
     for (int i = 0; i < 8; ++i)

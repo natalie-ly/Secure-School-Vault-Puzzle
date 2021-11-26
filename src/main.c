@@ -164,7 +164,7 @@ int main(void) // hello world
             Display7Segment1(count1);
             Display7Segment2(count2);
 
-            if(count == 4 && count1 == 7 && count2 == 2)
+            if(count == 4 && count1 == 7 && count2 == 1)
             {
                 winner = true;
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);

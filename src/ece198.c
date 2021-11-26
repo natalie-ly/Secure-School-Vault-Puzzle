@@ -166,6 +166,20 @@ int ReadEncoder1(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dt
     return result;
 }
 
+int ReadEncoder2(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previousClk)
+{
+    bool clk = HAL_GPIO_ReadPin(clkport, clkpin);
+    bool dt = HAL_GPIO_ReadPin(dtport, dtpin);
+    int result = 0;  // default to zero if encoder hasn't moved
+    if (clk != *previousClk)           // if the clk signal has changed since last time we were called...
+    {
+        result = dt != clk ? 1 : -1;   // set the result to the direction (-1 if clk == dt, 1 if they differ)
+    }
+
+    *previousClk = clk;                // store for next time
+    return result;
+}
+
 ///////////////////////
 // 7-Segment Display //
 ///////////////////////
@@ -196,10 +210,24 @@ segments1[] = {
     { GPIOA, GPIO_PIN_8 },  // H (also called DP)
 };
 
+//Third 7 segment display
+struct { GPIO_TypeDef *port; uint32_t pin; }
+segments2[] = {
+    { GPIOC, GPIO_PIN_6 },  // A
+    { GPIOC, GPIO_PIN_8 },  // B
+    { GPIOA, GPIO_PIN_11 },  // C
+    { GPIOB, GPIO_PIN_12 },  // D
+    { GPIOB, GPIO_PIN_2 },  // E
+    { GPIOC, GPIO_PIN_5 },  // F
+    { GPIOA, GPIO_PIN_12 },  // G
+    { GPIOC, GPIO_PIN_4 },  // H (also called DP)
+};
+
 // for each digit, we have a byte (uint8_t) which stores which segments are on and off
 // (bits are ABCDEFGH, right to left, so the low-order bit is segment A)
 uint8_t digitmap[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
 uint8_t digitmap1[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
+uint8_t digitmap2[10] = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7C, 0x07, 0x7F, 0x67 };
 
 //First 7 segment initialize and display
 void Initialize7Segment() {
@@ -233,43 +261,22 @@ void Display7Segment1(int digit1) {
         HAL_GPIO_WritePin(segments1[i].port, segments1[i].pin, (value1 >> i) & 0x01);  // move bit into bottom position and isolate it
 }
 
-/////////
-// ADC //
-/////////
-
-// Written by Rodolfo Pellizzoni, September 2021
-
-void InitializeADC(ADC_HandleTypeDef* adc, ADC_TypeDef* whichAdc)  // whichADC might be ADC1, for example
-{
-    adc->Instance = whichAdc;
-    adc->Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-    adc->Init.Resolution = ADC_RESOLUTION_12B;
-    adc->Init.ScanConvMode = DISABLE;
-    adc->Init.ContinuousConvMode = DISABLE;
-    adc->Init.DiscontinuousConvMode = DISABLE;
-    adc->Init.NbrOfDiscConversion = 1;
-    adc->Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-    adc->Init.ExternalTrigConv = ADC_SOFTWARE_START;
-    adc->Init.DataAlign = ADC_DATAALIGN_RIGHT;
-    adc->Init.NbrOfConversion = 1;
-    adc->Init.DMAContinuousRequests = DISABLE;
-    adc->Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-    HAL_ADC_Init(adc);
+//Third 7 segment initialize and display
+void Initialize7Segment2() {
+    for (int i = 0; i < 8; ++i)
+        InitializePin(segments2[i].port, segments2[i].pin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
 }
 
-// read from the specified ADC channel
-
-uint16_t ReadADC(ADC_HandleTypeDef* adc, uint32_t channel)  // channel might be ADC_CHANNEL_1 for example
-{
-    ADC_ChannelConfTypeDef sConfig = {0};
-    sConfig.Channel = channel;
-    sConfig.Rank = 1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-    HAL_ADC_ConfigChannel(adc, &sConfig);
-    HAL_ADC_Start(adc);
-    HAL_ADC_PollForConversion(adc, HAL_MAX_DELAY);
-    uint16_t res = HAL_ADC_GetValue(adc);
-    HAL_ADC_Stop(adc);
-    return res;
+void Display7Segment2(int digit2) {
+    int value2 = 0;  // by default, don't turn on any segments
+    if (digit2 >= 0 && digit2 <= 9)  // see if it's a valid digit
+        value2 = digitmap1[digit2];   // convert digit to a byte which specifies which segments are on
+    //value = ~value;   // uncomment this line for common-anode displays
+    // go through the segments, turning them on or off depending on the corresponding bit
+    for (int i = 0; i < 8; ++i)
+        HAL_GPIO_WritePin(segments2[i].port, segments2[i].pin, (value2 >> i) & 0x01);  // move bit into bottom position and isolate it
 }
+
+
+
 

@@ -21,18 +21,18 @@ void SerialPuts(char *ptr);
 
 int ReadEncoder(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previous);
 int ReadEncoder1(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previous);
+int ReadEncoder2(GPIO_TypeDef *clkport, int clkpin, GPIO_TypeDef *dtport, int dtpin, bool *previous);
 
 void InitializePWMTimer(TIM_HandleTypeDef *timer, TIM_TypeDef *whichTimer, uint16_t period, uint16_t prescale);
 void InitializePWMChannel(TIM_HandleTypeDef *timer, uint32_t channel);
 void SetPWMDutyCycle(TIM_HandleTypeDef *timer, uint32_t channel, uint32_t value);
 
-void InitializeKeypad();
-int ReadKeypad();
-
 void Initialize7Segment();
 void Display7Segment(int digit);
 void Initialize7Segment1();
 void Display7Segment1(int digit1);
+void Initialize7Segment2();
+void Display7Segment2(int digit2);
 
 void InitializeADC(ADC_HandleTypeDef* adc, ADC_TypeDef* whichAdc);
 uint16_t ReadADC(ADC_HandleTypeDef* adc, uint32_t channel);

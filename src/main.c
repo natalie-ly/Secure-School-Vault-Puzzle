@@ -68,6 +68,8 @@ int main(void) // hello world
     InitializePin(GPIOA, GPIO_PIN_10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); //initialize LED pin
     InitializePin(GPIOC, GPIO_PIN_12, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); //initialize buzzer pin
 
+    bool winner = false;
+
     //initializing for first 7 segment display and first rotary encoder
     Initialize7Segment();
     InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
@@ -97,10 +99,16 @@ int main(void) // hello world
     //HAL_GetTick() is a function that provides tick value in miliseconds
     uint32_t start_time = HAL_GetTick();
 
-    while (HAL_GetTick() - start_time < 6000)
+    while (HAL_GetTick() - start_time < 180000 && winner == false)
     {
         int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
+
+        //Buzzer beeps when it hits 1 min and 2 min
+        if(HAL_GetTick() - start_time == 60000 ||HAL_GetTick() - start_time == 120000)
+        {
+            Timer_Beep(250);
+        }
 
         if(delta != 0 || delta1 != 0) {
             count -= delta;
@@ -128,26 +136,33 @@ int main(void) // hello world
             char buff1[100];
             sprintf(buff1, "%d  \r", count1);
             SerialPuts(buff1);
+
+            Display7Segment(count);
+            Display7Segment1(count1);
+
             if(count1 == 7 && count == 4)
             {
+                winner = true;
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+                Timer_Beep(100);
+                HAL_Delay(250);
+                Timer_Beep(100);
+                HAL_Delay(250);
+                Timer_Beep(2000);
             }
             else
             {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
             }
 
-            Display7Segment(count);
-            Display7Segment1(count1);
         }
 
-        if(HAL_GetTick() - start_time == 60000 ||HAL_GetTick() - start_time == 120000)
-        {
-            Timer_Beep(250);
-        }
     }
-
-    Timer_Beep(1500);
+    
+    if(winner == false)
+    {
+        Timer_Beep(2000);
+    }
 
 #endif
 

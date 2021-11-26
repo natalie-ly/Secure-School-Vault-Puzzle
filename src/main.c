@@ -9,6 +9,7 @@
 // front of exactly ONE of the following lines:
 
 #define GAME
+//#define TESTING_BUZZER
 //#define TESTING_ROTARY_ENCODER1
 //#define TESTING_ROTARY_ENCODER2
 //#define ROTARY_ENCODER2
@@ -20,6 +21,14 @@
 
 #include "ece198.h"
 #include "LiquidCrystal.h"
+
+// BEEP Function
+void Timer_Beep(uint32_t beep_delay)
+{
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, true);
+    HAL_Delay(beep_delay);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
+}
 
 int main(void) // hello world
 {
@@ -39,6 +48,7 @@ int main(void) // hello world
     // initialize the pins to be input, output, alternate function, etc...
     InitializePin(GPIOA, GPIO_PIN_5, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);  // on-board LED
     InitializePin(GPIOA, GPIO_PIN_10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
+    InitializePin(GPIOC, GPIO_PIN_12, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0);
     // note: the on-board pushbutton is fine with the default values (no internal pull-up resistor
     // is required, since there's one on the board)
 
@@ -55,14 +65,10 @@ int main(void) // hello world
 #ifdef GAME
     // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
     // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
-    Initialize7Segment1();
-    InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
-    InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
-    InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
-    
-    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
-    int count1 = 0;             
+    InitializePin(GPIOA, GPIO_PIN_10, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); //initialize LED pin
+    InitializePin(GPIOC, GPIO_PIN_12, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, 0); //initialize buzzer pin
 
+    //initializing for first 7 segment display and first rotary encoder
     Initialize7Segment();
     InitializePin(GPIOB, GPIO_PIN_5, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
     InitializePin(GPIOB, GPIO_PIN_3, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
@@ -71,9 +77,28 @@ int main(void) // hello world
     bool previousClk = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
     int count = 0;             // this gets incremented or decremented as we rotate the encoder
 
-    while (true)
+    //initializing for second 7 segment display and second rotary encoder
+    Initialize7Segment1();
+    InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count1 = 0;             
+
+    //starting buzzer
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
+    HAL_Delay(500);
+    Timer_Beep(250);
+    HAL_Delay(250);
+    Timer_Beep(250);
+    
+    // declaring timer as an unsigned 32 bit integer
+    //HAL_GetTick() is a function that provides tick value in miliseconds
+    uint32_t start_time = HAL_GetTick();
+
+    while (HAL_GetTick() - start_time < 6000)
     {
-        // int check = 0;
         int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
 
@@ -90,7 +115,7 @@ int main(void) // hello world
             char buff[100];
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
-            
+
             count1 -= delta1;
             if(count1 == 10)
             {
@@ -116,11 +141,17 @@ int main(void) // hello world
             Display7Segment1(count1);
         }
 
+        if(HAL_GetTick() - start_time == 60000 ||HAL_GetTick() - start_time == 120000)
+        {
+            Timer_Beep(250);
+        }
     }
+
+    Timer_Beep(1500);
 
 #endif
 
-/* Function to turn LED on after 2.5 seconds, then turn it off
+//Function to turn LED on after 2.5 seconds, then turn it off
 #ifdef TESTING_LED
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
@@ -131,7 +162,7 @@ int main(void) // hello world
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
 
     //Solenoid Lock
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, true);
 
     //7 Segment Display
 
@@ -143,6 +174,8 @@ int main(void) // hello world
     //         HAL_Delay(1000);  // 1000 milliseconds == 1 second
     //     }
 
+    void LiquidCrystal(GPIO_TypeDef *gpioport, uint16_t rs, uint16_t rw, uint16_t enable,uint16_t d0, uint16_t d1, uint16_t d2, uint16_t d3);
+
     LiquidCrystal(GPIOC, GPIO_PIN_10, GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15, GPIO_PIN_2, GPIO_PIN_3);
     setCursor(0, 0);
     print("Hello World");
@@ -153,7 +186,7 @@ int main(void) // hello world
     // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
     // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
     
-    Initialize7Segment1();
+    Initialize7Segment2();
     InitializePin(GPIOB, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
     InitializePin(GPIOB, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
     InitializePin(GPIOB, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
@@ -186,7 +219,7 @@ int main(void) // hello world
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
             }
         }
-        Display7Segment1(count1);
+        Display7Segment2(count1);
     }
 
 #endif
@@ -239,7 +272,22 @@ int main(void) // hello world
         }
     }
 #endif
-*/
+
+#ifdef TESTING_BUZZER
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
+
+    //delays LED turn on for 2.5s
+    HAL_Delay(2500);
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, true);
+
+    HAL_Delay(500);
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
+
+
+#endif
+
     return 0;
 }
 

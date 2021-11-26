@@ -1,19 +1,10 @@
-// Sample code for ECE 198
-
-// Written by Bernie Roehl, August 2021
-
-// This file contains code for a number of different examples.
-// Each one is surrounded by an #ifdef ... #endif block inside of main().
-
-// To run a particular example, you should remove the comment (//) in
-// front of exactly ONE of the following lines:
+// Some sample code (Written by Bernie Roehl, August 2021) for ECE 198 was taken 
 
 #define GAME
 //#define TESTING_BUZZER
 //#define TESTING_ROTARY_ENCODER1
 //#define TESTING_ROTARY_ENCODER2
 //#define ROTARY_ENCODER2
-//#define TESTING_LED
 
 #include <stdbool.h> // booleans, i.e. true and false
 #include <stdio.h>   // sprintf() function
@@ -121,6 +112,8 @@ int main(void) // hello world
         }
 
         if(delta != 0 || delta1 != 0 || delta2 != 0) {
+            
+            //first rotary encoder count
             count -= delta;
             if(count == 10)
             {
@@ -134,6 +127,7 @@ int main(void) // hello world
             sprintf(buff, "%d  \r", count);
             SerialPuts(buff);
 
+            //second rotary encoder count
             count1 -= delta1;
             if(count1 == 10)
             {
@@ -147,6 +141,7 @@ int main(void) // hello world
             sprintf(buff1, "%d  \r", count1);
             SerialPuts(buff1);
 
+            //third rotary encoder count
             count2 -= delta2;
             if(count2 == 10)
             {
@@ -160,10 +155,12 @@ int main(void) // hello world
             sprintf(buff2, "%d  \r", count2);
             SerialPuts(buff2);
 
+            //displaying the count onto the 7 segment displays
             Display7Segment(count);
             Display7Segment1(count1);
             Display7Segment2(count2);
 
+            //checking if there is a winner (if the correct combination is entered)
             if(count == 4 && count1 == 7 && count2 == 1)
             {
                 winner = true;
@@ -178,9 +175,7 @@ int main(void) // hello world
             {
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
             }
-
         }
-
     }
     
     if(winner == false)
@@ -191,7 +186,8 @@ int main(void) // hello world
 #endif
 
 /*Function to turn LED on after 2.5 seconds, then turn it off
-#ifdef TESTING_LED
+//testing to see if LED turns on after 2.5 seconds then turns off, testing LCD display
+#ifdef TESTING_PARTS
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
 
@@ -200,18 +196,6 @@ int main(void) // hello world
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, false);
 
-    //Solenoid Lock
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, true);
-
-    //7 Segment Display
-
-    // Initialize7Segment();
-    // while (true)
-    //     for (int i = 0; i < 10; ++i)
-    //     {
-    //         Display7Segment(i);
-    //         HAL_Delay(1000);  // 1000 milliseconds == 1 second
-    //     }
 
     void LiquidCrystal(GPIO_TypeDef *gpioport, uint16_t rs, uint16_t rw, uint16_t enable,uint16_t d0, uint16_t d1, uint16_t d2, uint16_t d3);
 
@@ -221,7 +205,8 @@ int main(void) // hello world
 
 #endif
 
-#ifdef ROTARY_ENCODER2
+//testing that second rotary encoder and second 7 segment display works together properly
+#ifdef ROTARY_SEGMENT2
     // Display the numbers 0 to 9 inclusive on the 7-segment display, pausing for a second between each one.
     // (remember that the GND connection on the display must go through a 220 ohm current-limiting resistor!)
     
@@ -312,6 +297,7 @@ int main(void) // hello world
     }
 #endif
 
+//to test if buzzer is outputting a sound 
 #ifdef TESTING_BUZZER
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
 

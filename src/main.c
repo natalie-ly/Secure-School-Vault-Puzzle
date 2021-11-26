@@ -88,6 +88,15 @@ int main(void) // hello world
     bool previousClk1 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
     int count1 = 0;             
 
+    //initializing for third 7 segment display and third rotary encoder
+    Initialize7Segment2();
+    InitializePin(GPIOA, GPIO_PIN_14, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize CLK pin
+    InitializePin(GPIOA, GPIO_PIN_15, GPIO_MODE_INPUT, GPIO_PULLUP, 0);   // initialize DT pin
+    InitializePin(GPIOA, GPIO_PIN_13, GPIO_MODE_INPUT, GPIO_PULLUP, 0);  // initialize SW pin
+    
+    bool previousClk2 = false;  // needed by ReadEncoder() to store the previous state of the CLK pin
+    int count2 = 0;  
+
     //starting buzzer
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, false);
     HAL_Delay(500);
@@ -103,6 +112,7 @@ int main(void) // hello world
     {
         int delta = ReadEncoder(GPIOB, GPIO_PIN_5, GPIOB, GPIO_PIN_3, &previousClk);  // update the count by -1, 0 or +1
         int delta1 = ReadEncoder1(GPIOB, GPIO_PIN_13, GPIOB, GPIO_PIN_14, &previousClk1);  // update the count by -1, 0 or +1
+        int delta2 = ReadEncoder2(GPIOA, GPIO_PIN_14, GPIOA, GPIO_PIN_15, &previousClk2);  // update the count by -1, 0 or +1
 
         //Buzzer beeps when it hits 1 min and 2 min
         if(HAL_GetTick() - start_time == 60000 ||HAL_GetTick() - start_time == 120000)
@@ -110,7 +120,7 @@ int main(void) // hello world
             Timer_Beep(250);
         }
 
-        if(delta != 0 || delta1 != 0) {
+        if(delta != 0 || delta1 != 0 || delta2 != 0) {
             count -= delta;
             if(count == 10)
             {
@@ -137,10 +147,24 @@ int main(void) // hello world
             sprintf(buff1, "%d  \r", count1);
             SerialPuts(buff1);
 
+            count2 -= delta2;
+            if(count2 == 10)
+            {
+                count2 = 0;
+            }
+            else if(count2 == -1)
+            {
+                count2 = 9;
+            }
+            char buff2[100];
+            sprintf(buff2, "%d  \r", count2);
+            SerialPuts(buff2);
+
             Display7Segment(count);
             Display7Segment1(count1);
+            Display7Segment2(count2);
 
-            if(count1 == 7 && count == 4)
+            if(count == 4 && count1 == 7 && count2 == 2)
             {
                 winner = true;
                 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
@@ -166,7 +190,7 @@ int main(void) // hello world
 
 #endif
 
-//Function to turn LED on after 2.5 seconds, then turn it off
+/*Function to turn LED on after 2.5 seconds, then turn it off
 #ifdef TESTING_LED
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, true);
@@ -302,6 +326,7 @@ int main(void) // hello world
 
 
 #endif
+*/
 
     return 0;
 }

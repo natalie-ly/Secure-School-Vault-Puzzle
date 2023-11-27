@@ -4,4 +4,5 @@ An escape room simulation that uses an STM-32 Nucleo Board. To solve the vault, 
 the players to know that they have been successful. A single-digit 7-segment display is used to display the current position of the “dial”. There is a buzzer system that indicates the time left for the player where there are short beeps every minute and one long beep once the time is up. 
 
 ## Demo
-![Secure School Vault Puzzle Demot](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTBuNHg0MHZldXoxZG8zeTNyZjhpOGhiZzU0ZHl6YmtvOWw4cTlxMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hQwX1vOOiTyY2Ld2me/giphy-downsized-large.gif)
+![Secure School Vault Puzzle Demo](https://media.giphy.com/media/hQwX1vOOiTyY2Ld2me/giphy.gif)
+[Link to Demo](https://giphy.com/gifs/hQwX1vOOiTyY2Ld2me)
